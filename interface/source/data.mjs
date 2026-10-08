@@ -259,3 +259,80 @@ export const checklist = [
   'Hors UE (Monténégro, Albanie, Bosnie) : prendre un avocat local pour le titre de propriété et le permis de construire.',
   "Visiter, ou faire visiter, et confirmer avec l'agent que l'annonce est encore active.",
 ];
+
+// Cycle 1 (08/10/2026) : classement en rendement NET prudent (rapports/rapport-cycle-1-2026-10-08.md)
+const b = Object.fromEntries(budget150.map(z => [z.id, z]));
+const nonRecalcule = 'pas encore recalculé';
+export const cycle1 = [
+  { ...b.brasov, id: 'c-brasov', rang: 1, note: 8, net: '5,6 %', cout: '~98 k€', statut: 'signal',
+    resume: 'Meilleur rendement net avec le plus petit ticket. Il reste ~50 k€ de réserve.',
+    annonces: [
+      { ...b.brasov.annonces[0], detail: 'Immeuble de 1910 rénové, meublé, à 70 m de Piața Sfatului. Coût total ~98 k€, 5,6 % net.' },
+      { ...b.brasov.annonces[1], detail: 'Les voisins ont déjà accepté la location touristique. 5,3 % net.' },
+      b.brasov.annonces[2]],
+    plus: "À vérifier : l'impôt roumain exact pour un non-résident (forfait par chambre ou 10 %), l'accord de la copropriété, la concurrence (+19 % d'annonces Airbnb en un an)." },
+  { ...b.ortigia, id: 'c-ortigia', rang: 2, note: 8, net: '5,0 %', cout: '~131 k€', types: ['ville', 'mer'],
+    resume: "Presque aussi bien que Brașov, dans la zone euro, sur un site UNESCO. Via Arizzi est déjà exploité en location : on peut demander ses relevés de revenus.",
+    annonces: [
+      { ...b.ortigia.annonces[0], detail: 'Déjà exploité en location de vacances. Coût total ~131 k€, 5,0 % net.' },
+      { ...b.ortigia.annonces[2], detail: 'Rénové, réseaux refaits, meublé. 4,8 % net.' },
+      { ...b.ortigia.annonces[1], detail: 'Déjà loué avec de bons avis. 3,7 % net.' }],
+    plus: "Option enchère : Via Alagona, vente le 27/10/2026 (6,6 à 7,3 % net à l'offre minimale). Voir le bloc « Enchères » plus bas." },
+  { ...b.lecce, id: 'c-lecce', rang: 3, note: 7, net: '4,7 %', cout: '~101 k€',
+    annonces: [
+      { ...b.lecce.annonces[0], detail: 'Entièrement rénové, meublé. Coût total ~101 k€, 4,7 % net.' },
+      { ...b.lecce.annonces[2], detail: '4,2 % net, mais hors budget une fois les frais ajoutés.' },
+      { ...b.lecce.annonces[1], detail: 'Classe énergie G. 4,0 % net.' }],
+    plus: null },
+  { ...b.heraklion, id: 'c-heraklion', rang: 4, note: 6.5, net: nonRecalcule, cout: null },
+  { ...b.tarvisio, id: 'c-tarvisio', rang: 5, note: 6, net: '3,5 %', cout: '~103 k€',
+    resume: "Double saison ski et été, mais le recalcul en net l'a fait descendre.",
+    annonces: [{ ...b.tarvisio.annonces[0], detail: 'Meublé, près des pistes. Coût total ~103 k€, 3,5 % net.' }, b.tarvisio.annonces[1]] },
+  { ...b.arrifes, id: 'c-arrifes', rang: 6, note: 6, net: nonRecalcule, cout: null },
+  { id: 'c-sarajevo', rang: 7, nom: 'Sarajevo, Stari Grad', region: 'Bosnie-Herzégovine', pays: 'Bosnie', lon: 18.43, lat: 43.86,
+    types: ['ville', 'montagne'], statut: 'actuelle', note: 5.5, net: nonRecalcule, cout: null, rendement: '~10 % brut', prixM2: '–', hausse: '+18 à +23 % sur 1 an',
+    exemple: '1 pièce de 42 m², ~112 k€', resume: 'Vieille ville et ski à proximité, mais très peu d\'offre et pays hors UE.', signal: null,
+    annonces: [{ titre: '1 pièce, Stari Grad, 42 m²', prix: '~112 000 €', url: 'https://www.prostor.ba/prodaja/stan/stari-grad/13205', verifie: true, detail: '~10 % brut, net pas encore recalculé.' }],
+    regles: ['Hors UE : avocat local pour le titre de propriété'], risques: ['Très peu d\'offre', 'Occupation faible hors été'] },
+  { id: 'c-pescara', rang: 8, nom: 'Pescara (niche studio)', region: 'Abruzzes', pays: 'Italie', lon: 14.21, lat: 42.46,
+    types: ['ville', 'mer'], statut: 'actuelle', note: 5.5, net: '3,7 %', cout: '~66 k€', rendement: '–', prixM2: '–', hausse: 'Abruzzes notées 4/10',
+    exemple: 'Studio 27 m², 58 k€', resume: 'Seul cas intéressant des Abruzzes : un petit studio dans une ville active toute l\'année, à moins de 70 k€.', signal: null,
+    annonces: [{ titre: 'Studio via Filomusi Guelfi, 27 m²', prix: '58 000 €', url: 'https://www.immobiliare.it/annunci/129729988/', verifie: true, detail: 'Coût total ~66 k€. 3,7 % net (5,4 % si 140 nuits).' }],
+    regles: ['Régime italien : CIN, 21 % forfaitaire'], risques: ['Le reste des Abruzzes ne tient pas en net'] },
+  { ...b.retamar, id: 'c-retamar', rang: 9, note: 5, net: nonRecalcule, cout: null,
+    resume: 'Saison courte et risque de baisse : à recalculer en net au prochain cycle.' },
+  { id: 'c-krakow', rang: 10, nom: 'Kraków, Stare Podgórze', region: 'Petite-Pologne', pays: 'Pologne', lon: 19.95, lat: 50.04,
+    types: ['ville'], statut: 'actuelle', note: 5, net: nonRecalcule, cout: null, rendement: '–', prixM2: '–', hausse: '–',
+    exemple: '50 m², ~123 k€', resume: 'Quartier peu touristique, et une loi sur la location courte durée en préparation.', signal: null,
+    annonces: [{ titre: 'Stare Podgórze, 50 m²', prix: '~123 000 €', url: 'https://www.domiporta.pl/nieruchomosci/sprzedam-mieszkanie-trzypokojowe-krakow-podgorze-stare-podgorze-mitery-50m2/156590823', verifie: true, detail: 'Net pas encore recalculé.' }],
+    regles: ['Loi sur la location courte durée en préparation'], risques: ['Quartier peu touristique'] },
+];
+
+export const ecartees1 = [
+  { nom: 'Pizzo', pays: 'Italie', lon: 16.16, lat: 38.73, note: null, pourquoi: '1,3 à 1,7 % net sur 4 biens vérifiés : saison trop courte' },
+  { nom: 'Ulcinj', pays: 'Monténégro', lon: 19.22, lat: 41.93, note: null, pourquoi: '1,3 à 1,8 % net sur 7 annonces. Reste un pari de plus-value (UE 2028)' },
+  { nom: 'Shëngjin', pays: 'Albanie', lon: 19.59, lat: 41.81, note: null, pourquoi: '1,0 à 1,6 % net sur 6 annonces. Reste un pari de plus-value (UE 2030)' },
+  { nom: 'Syracuse côte sud', pays: 'Italie', lon: 15.29, lat: 36.98, note: null, pourquoi: 'Plemmirio, Fontane Bianche, Cassibile : −0,1 à 2 % net sur 7 biens' },
+  { nom: 'Abruzzes hors Pescara', pays: 'Italie', lon: 13.9, lat: 42.2, note: 4, pourquoi: 'Zone notée 4/10, seul le studio de Pescara tient' },
+];
+
+export const recommandation1 = [
+  { titre: 'Choix n°1', zone: 'c-brasov', texte: 'Studio rue Michael Weiss, 95 k€ : 5,6 % net, le plus petit ticket, ~50 k€ de réserve, base Wizz Air en décembre.' },
+  { titre: 'Choix n°2', zone: 'c-ortigia', texte: 'Via Arizzi, 115 k€ : 5,0 % net, zone euro, déjà exploité, relevés de revenus disponibles.' },
+  { titre: 'Option enchère', zone: 'c-ortigia', texte: "Via Alagona, vente le 27/10/2026, 6,6 à 7,3 % net à l'offre minimale. Seulement si le dossier juridique est propre." },
+];
+
+export const encheres = {
+  date: '27/10/2026', limite: '26/10/2026 à 13 h', contact: 'Aste Florio : +39 06 4006 1824', site: 'pvp.giustizia.it',
+  lots: [
+    { lot: 'Via Alagona 85, lot 4', url: 'https://www.immobiliare.it/annunci/132159894/', surface: '37 m², meublé', min: '58 881 €', base: '78 508 €', net: '7,3 %' },
+    { lot: 'Via Alagona 83, lot 2', url: 'https://www.immobiliare.it/annunci/132159880/', surface: '80 m²', min: '108 388 €', base: '142 717 € (hors budget si concurrence)', net: '6,6 %' },
+  ],
+  verifier: ['Le tribunal et le numéro de procédure', "L'avis de vente et l'expertise (perizia)", 'La catégorie cadastrale : en D/2 (hôtelière), pas de location touristique classique ni de prêt', "L'agibilità (certificat d'habitabilité)", 'La TVA éventuelle', 'Les charges de copropriété impayées'],
+  note: "Le n° 85 fait partie d'un ensemble « type hôtel » vendu en 7 lots. Une liquidation d'entreprise est possible, pas confirmée.",
+};
+
+export const dates1 = [
+  { quand: '26/10/2026', quoi: "Date limite des offres pour l'enchère Via Alagona (13 h)", zone: 'Ortigia' },
+  { quand: '27/10/2026', quoi: 'Vente aux enchères Via Alagona', zone: 'Ortigia' },
+];
