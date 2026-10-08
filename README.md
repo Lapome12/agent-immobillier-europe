@@ -2,7 +2,8 @@
 
 Équipe d'agents qui cherche des biens immobiliers à fort potentiel touristique en Europe (bord de mer, îles, montagne, lacs, villes patrimoniales).
 
-- [L'équipe d'agents](agents/README.md) : 3 agents par zone, 1 agent prospecteur, 1 manager.
+- [L'équipe d'agents](agents/README.md) : un prospecteur chef des recherches, 3 agents immobiliers sous ses ordres, un manager mémoire et contrôle.
+- [Carnet de mémoire](memoire/historique-recherches.md) : tout ce qui a déjà été cherché, et les leçons.
 - [Rapports](rapports/) : classements datés.
 
 Budget actuel du client : **150 000 € maximum**, aucune zone imposée.
