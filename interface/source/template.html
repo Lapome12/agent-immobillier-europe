@@ -1,0 +1,431 @@
+<title>Radar immobilier Europe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout : carte de prospection à gauche, fiche de la zone à droite, classement en dessous, puis les annexes du rapport. */
+:root {
+  --bg: #eef3f4; --surface: #ffffff; --ink: #13222c; --muted: #5a6b76; --line: #d6e0e4;
+  --water: #dbe8ee; --land: #f7f8f5; --border-land: #c5d2d8;
+  --accent: #155e7d; --accent-soft: #dcecf2;
+  --mer: #1a7fa8; --montagne: #4c7a45; --ville: #b0602f; --anticiper: #7a4cb8;
+  --good: #2f7d4f; --warn: #a86a12; --bad: #b23b3b;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d161b; --surface: #15222a; --ink: #e4edf0; --muted: #93a5af; --line: #263741;
+  --water: #0f2029; --land: #1d2c34; --border-land: #33464f;
+  --accent: #6cc0e0; --accent-soft: #173543;
+  --mer: #49acd6; --montagne: #7fb274; --ville: #e08a55; --anticiper: #b08ae8;
+  --good: #6cc48f; --warn: #e0a64a; --bad: #e57373; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0d161b; --surface: #15222a; --ink: #e4edf0; --muted: #93a5af; --line: #263741;
+  --water: #0f2029; --land: #1d2c34; --border-land: #33464f;
+  --accent: #6cc0e0; --accent-soft: #173543;
+  --mer: #49acd6; --montagne: #7fb274; --ville: #e08a55; --anticiper: #b08ae8;
+  --good: #6cc48f; --warn: #e0a64a; --bad: #e57373; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 22px; font-weight: 700; }
+h3 { font-size: 18px; font-weight: 700; }
+a { color: var(--accent); }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* En-tête */
+header.top { display: grid; gap: 14px; }
+.top-row { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: end; justify-content: space-between; }
+.lede { max-width: 66ch; margin: 0; color: var(--muted); }
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; padding: 7px 14px; border-radius: 7px; font-weight: 600; font-size: 14px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 14px; font-weight: 600; display: inline-flex; gap: 6px; align-items: center; }
+.chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.mer { background: var(--mer); } .dot.montagne { background: var(--montagne); } .dot.ville { background: var(--ville); }
+.dot.anticiper { background: transparent; border: 2px dashed var(--anticiper); width: 11px; height: 11px; }
+.sep { width: 1px; align-self: stretch; background: var(--line); margin-inline: 4px; }
+.count { font-size: 14px; color: var(--muted); margin-left: auto; }
+
+/* Carte + fiche */
+.stage { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.map-box { background: var(--water); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; position: relative; }
+.map-box svg { display: block; width: 100%; height: auto; }
+.land { fill: var(--land); stroke: var(--border-land); stroke-width: 0.6; }
+.mk { cursor: pointer; }
+.mk circle.body { stroke: var(--surface); stroke-width: 2; transition: r .15s; }
+.mk text { font-family: var(--font-data); font-size: 15px; fill: #fff; text-anchor: middle; dominant-baseline: central; pointer-events: none; font-weight: 500; }
+.mk .ring { fill: none; stroke: var(--anticiper); stroke-width: 2; stroke-dasharray: 4 3; }
+.mk .label { font-family: var(--font-body); font-size: 18px; font-weight: 700; fill: var(--ink); text-anchor: start; paint-order: stroke; stroke: var(--land); stroke-width: 4px; stroke-linejoin: round; display: none; }
+.mk:hover .label, .mk.sel .label { display: block; }
+.mk.sel circle.body { stroke: var(--ink); stroke-width: 2.5; }
+.mk.off { opacity: 0.18; }
+.mk.minor circle { fill: var(--muted); stroke: var(--surface); stroke-width: 1.5; }
+.legend { position: absolute; left: 10px; bottom: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; max-width: calc(100% - 20px); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend .dot.minor { background: var(--muted); width: 7px; height: 7px; }
+
+.fiche { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.fiche-head { display: flex; gap: 14px; align-items: start; }
+.score { flex: none; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-data); font-size: 20px; border: 4px solid var(--good); }
+.score small { display: block; font-size: 10px; color: var(--muted); text-align: center; margin-top: -4px; }
+.score.mid { border-color: var(--warn); } .score.low { border-color: var(--bad); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--ink); display: inline-flex; gap: 5px; align-items: center; }
+.tag.anticiper { background: transparent; border: 1.5px dashed var(--anticiper); color: var(--anticiper); }
+.tag.signal { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.kpi { background: var(--surface); padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.kpi .v { font-family: var(--font-data); font-size: 15px; }
+.kpi .k { font-size: 12px; color: var(--muted); }
+.signal-box { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; font-size: 14px; }
+.signal-box b { color: var(--accent); }
+.annonces { display: grid; gap: 8px; }
+.annonce { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--ink); }
+.annonce:hover { border-color: var(--accent); background: var(--accent-soft); }
+.annonce .t { font-weight: 700; }
+.annonce .p { font-family: var(--font-data); white-space: nowrap; }
+.annonce .d { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+.badge { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.badge.ok { color: var(--good); } .badge.nok { color: var(--warn); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.cols ul { margin: 6px 0 0; padding-left: 18px; font-size: 14px; display: grid; gap: 3px; }
+.note-plus { font-size: 14px; background: var(--bg); border-radius: 8px; padding: 8px 12px; }
+.src { font-size: 13px; }
+
+/* Classement */
+.rank { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.card { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 8px; grid-template-rows: auto auto 1fr; }
+.card:hover { border-color: var(--accent); }
+.card[aria-current="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.card-top { display: flex; gap: 10px; align-items: baseline; }
+.card .r { font-family: var(--font-data); color: var(--muted); font-size: 13px; }
+.card .n { font-family: var(--font-display); font-weight: 700; font-size: 17px; line-height: 1.2; flex: 1; min-width: 0; }
+.card .s { font-family: var(--font-data); font-size: 15px; }
+.card .meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--muted); }
+.card .meta b { color: var(--ink); font-family: var(--font-data); font-weight: 500; }
+.card .ex { font-size: 13.5px; }
+.empty { padding: 24px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; }
+
+/* Annexes */
+.annex { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.reco { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.reco-item { border-top: 3px solid var(--accent); padding-top: 10px; display: grid; gap: 4px; align-content: start; }
+.reco-item:nth-child(2) { border-color: var(--ville); }
+.reco-item:nth-child(3) { border-color: var(--anticiper); }
+.reco-item button.lnk { background: none; border: 0; padding: 0; text-align: left; font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.reco-item p { margin: 0; font-size: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+td.nt { font-family: var(--font-data); white-space: nowrap; }
+.tbl { overflow-x: auto; }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.timeline li { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.timeline .q { font-family: var(--font-data); font-size: 13px; color: var(--accent); padding-top: 1px; }
+.avoid { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.avoid li { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 8px; font-size: 14px; }
+.avoid li::before { content: ""; width: 10px; height: 10px; margin-top: 6px; background: var(--bad); border-radius: 2px; transform: rotate(45deg); }
+.check { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.check label { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; font-size: 14px; cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent); }
+.check input:checked + span { color: var(--muted); text-decoration: line-through; }
+.deadline { font-family: var(--font-data); font-size: 13px; color: var(--bad); border: 1.5px solid var(--bad); border-radius: 6px; padding: 2px 8px; }
+.kpi.net .v { color: var(--good); font-weight: 500; }
+.kpi.net.pending .v { color: var(--muted); font-family: var(--font-body); font-style: italic; font-size: 14px; }
+.howto { font-size: 13.5px; color: var(--muted); display: grid; gap: 4px; }
+footer { font-size: 13px; color: var(--muted); }
+
+@media (max-width: 900px) {
+  .stage, .annex { grid-template-columns: minmax(0, 1fr); }
+  .reco { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 520px) {
+  .kpis { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .cols { grid-template-columns: minmax(0, 1fr); }
+  .count { margin-left: 0; width: 100%; }
+  .sep { display: none; }
+  .legend { position: static; border-radius: 0; border-width: 1px 0 0; max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="top-row">
+      <div style="display:grid;gap:8px;min-width:0">
+        <h1>Radar immobilier Europe</h1>
+        <p class="lede" id="lede"></p>
+      </div>
+      <div class="seg" role="group" aria-label="Budget">
+        <button id="bnet" aria-pressed="true">Cycle 1 · net</button>
+        <button id="b150" aria-pressed="false">150 k€ · brut</button>
+        <button id="b400" aria-pressed="false">150 à 400 k€</button>
+      </div>
+    </div>
+    <div class="filters" role="group" aria-label="Filtres">
+      <button class="chip" data-f="tout" aria-pressed="true">Toutes</button>
+      <button class="chip" data-f="mer" aria-pressed="false"><i class="dot mer"></i>Bord de mer</button>
+      <button class="chip" data-f="montagne" aria-pressed="false"><i class="dot montagne"></i>Montagne</button>
+      <button class="chip" data-f="ville" aria-pressed="false"><i class="dot ville"></i>Ville historique</button>
+      <span class="sep"></span>
+      <button class="chip" id="fAnt" aria-pressed="false"><i class="dot anticiper"></i>Marchés à anticiper</button>
+      <button class="chip" id="fMinor" aria-pressed="true"><i class="dot" style="background:var(--muted)"></i><span id="fMinorLbl">Zones hors top 10</span></button>
+      <span class="count" id="count"></span>
+    </div>
+  </header>
+
+  <section class="stage">
+    <div class="map-box">
+      <svg id="map" viewBox="0 0 1000 720" role="img" aria-label="Carte de l'Europe avec les zones classées">
+        <path class="land" d="__LAND__"></path>
+        <g id="minor"></g>
+        <g id="markers"></g>
+      </svg>
+      <div class="legend">
+        <span><i class="dot mer"></i>Mer</span>
+        <span><i class="dot montagne"></i>Montagne</span>
+        <span><i class="dot ville"></i>Ville</span>
+        <span><i class="dot anticiper"></i>À anticiper</span>
+        <span><i class="dot minor"></i><span id="legMinor">Hors top 10</span></span>
+      </div>
+    </div>
+    <article class="fiche" id="fiche" aria-live="polite"></article>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline">
+      <h2>Le classement</h2>
+      <span class="muted" style="font-size:14px" id="rankNote"></span>
+    </div>
+    <div class="rank" id="rank"></div>
+  </section>
+
+  <section class="panel" id="recoPanel">
+    <h2>La recommandation du manager</h2>
+    <p class="muted" style="margin:0;font-size:14px" id="recoNote">Avec 150 k€, on achète un seul bien.</p>
+    <div class="reco" id="reco"></div>
+  </section>
+
+  <section class="panel" id="enchPanel">
+    <div style="display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline">
+      <h2>Enchères Ortigia, Via Alagona</h2>
+      <span class="deadline" id="enchDate"></span>
+    </div>
+    <div class="tbl"><table><thead><tr><th>Lot</th><th>Surface</th><th>Offre minimale</th><th>Prix de base</th><th>Net à l'offre min.</th></tr></thead><tbody id="enchTbl"></tbody></table></div>
+    <div class="cols">
+      <div><h3>À vérifier avant toute offre</h3><ul id="enchCheck"></ul></div>
+      <div style="display:grid;gap:8px;align-content:start;font-size:14px" id="enchInfo"></div>
+    </div>
+  </section>
+
+  <section class="annex">
+    <div class="panel">
+      <h2 id="minorTitle">Juste en dehors du top 10</h2>
+      <div class="tbl"><table><thead><tr><th>Zone</th><th>Note</th><th>Pourquoi</th></tr></thead><tbody id="minorTbl"></tbody></table></div>
+    </div>
+    <div class="panel">
+      <h2>Dates à surveiller</h2>
+      <ul class="timeline" id="dates"></ul>
+    </div>
+    <div class="panel">
+      <h2>Zones à éviter</h2>
+      <ul class="avoid" id="avoid"></ul>
+    </div>
+    <div class="panel">
+      <h2>Avant de faire une offre</h2>
+      <ul class="check" id="check"></ul>
+      <div class="howto">
+        <span><b>Rendement brut</b> : prix de la nuit × nuits louées (occupation prudente) ÷ prix affiché.</span>
+        <span><b>Net</b> : compter environ 60 à 70 % du brut après gestion, ménage, plateformes, charges et impôts.</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>Annonces « vérifiées » : page ouverte et prix lu le 08/10/2026. Les liens peuvent expirer ; confirmer avec l'agent que le bien est encore en vente.</footer>
+</div>
+
+<script>
+const D = __DATA__;
+const NS = 'http://www.w3.org/2000/svg';
+const TYPE_LABEL = { mer: 'Bord de mer', montagne: 'Montagne', ville: 'Ville historique' };
+const STATUT_LABEL = { actuelle: 'Bonne affaire actuelle', signal: 'Actuelle + signal', anticiper: 'À anticiper' };
+const state = { budget: 'net', filtre: 'tout', anticiper: false, minor: true, sel: null };
+try { const s = JSON.parse(localStorage.getItem('radar-state') || '{}'); if (['net', '150', '400'].includes(s.budget)) state.budget = s.budget; } catch (e) {}
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmtNote = (n) => String(n).replace('.', ',');
+const scoreClass = (n) => n >= 7.5 ? '' : n >= 6.5 ? 'mid' : 'low';
+const zones = () => ({ net: D.cycle1, '150': D.budget150, '400': D.budget400 })[state.budget];
+const minors = () => ({ net: D.ecartees1, '150': D.horsTop150, '400': D.horsTop400 })[state.budget];
+const isNet = () => state.budget === 'net';
+const visible = (z) => (state.filtre === 'tout' || z.types.includes(state.filtre)) && (!state.anticiper || z.statut === 'anticiper');
+
+function save() { try { localStorage.setItem('radar-state', JSON.stringify({ budget: state.budget })); } catch (e) {} }
+
+function renderMap() {
+  const g = $('markers'); g.innerHTML = '';
+  // les plus mal classés d'abord pour que le n°1 soit dessiné au-dessus
+  [...zones()].sort((a, b) => b.rang - a.rang).forEach(z => {
+    const m = document.createElementNS(NS, 'g');
+    m.setAttribute('class', 'mk' + (visible(z) ? '' : ' off') + (state.sel === z.id ? ' sel' : ''));
+    m.setAttribute('transform', `translate(${z.x},${z.y})`);
+    m.setAttribute('tabindex', '0'); m.setAttribute('role', 'button');
+    m.setAttribute('aria-label', `${z.rang}. ${z.nom}, note ${fmtNote(z.note)} sur 10`);
+    const r = state.sel === z.id ? 19 : 15;
+    const right = z.x > 700;
+    m.innerHTML = (z.statut === 'anticiper' ? `<circle class="ring" r="${r + 5}"></circle>` : '') +
+      `<circle class="body" r="${r}" style="fill:var(--${z.types[0]})"></circle><text>${z.rang}</text>` +
+      `<text class="label" x="${right ? -(r + 6) : r + 6}" y="0" style="text-anchor:${right ? 'end' : 'start'};dominant-baseline:central">${esc(z.nom)}</text>`;
+    m.addEventListener('click', () => select(z.id));
+    m.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(z.id); } });
+    g.appendChild(m);
+  });
+  const mg = $('minor'); mg.innerHTML = '';
+  if (state.minor) minors().forEach(z => {
+    const m = document.createElementNS(NS, 'g');
+    m.setAttribute('class', 'mk minor');
+    m.setAttribute('transform', `translate(${z.x},${z.y})`);
+    const right = z.x > 700;
+    m.innerHTML = `<circle r="7"></circle><title>${esc(z.nom)}${z.note != null ? ` (${fmtNote(z.note)}/10)` : ''} : ${esc(z.pourquoi)}</title>` +
+      `<text class="label" x="${right ? -12 : 12}" style="text-anchor:${right ? 'end' : 'start'};dominant-baseline:central;font-size:16px">${esc(z.nom)}${z.note != null ? ' · ' + fmtNote(z.note) : isNet() ? ' · écartée' : ''}</text>`;
+    mg.appendChild(m);
+  });
+}
+
+function renderFiche() {
+  const z = zones().find(z => z.id === state.sel) || zones()[0];
+  const ann = z.annonces.length ? z.annonces.map(a => `
+    <a class="annonce" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">
+      <span class="t">${esc(a.titre)}</span><span class="p">${esc(a.prix)}</span>
+      <span class="d"><span class="badge ${a.verifie ? 'ok' : 'nok'}">${a.verifie ? 'Vérifiée' : 'Non vérifiée'}</span>${a.detail ? ' · ' + esc(a.detail) : ''}</span>
+    </a>`).join('') : `<div class="note-plus">Pas d'annonce active retenue pour cette zone.</div>`;
+  $('fiche').innerHTML = `
+    <div class="fiche-head">
+      <div class="score ${scoreClass(z.note)}"><div>${fmtNote(z.note)}<small>/10</small></div></div>
+      <div style="min-width:0">
+        <div class="eyebrow">N° ${z.rang} · ${esc(z.region)}, ${esc(z.pays)}</div>
+        <h2>${esc(z.nom)}</h2>
+        <div class="tags">
+          ${z.types.map(t => `<span class="tag"><i class="dot ${t}"></i>${TYPE_LABEL[t]}</span>`).join('')}
+          <span class="tag ${z.statut === 'anticiper' ? 'anticiper' : z.statut === 'signal' ? 'signal' : ''}">${STATUT_LABEL[z.statut]}</span>
+        </div>
+      </div>
+    </div>
+    <p style="margin:0">${esc(z.resume)}</p>
+    <div class="kpis">
+      ${isNet() ? `<div class="kpi net${/%/.test(z.net) ? '' : ' pending'}"><span class="k">Rendement net prudent</span><span class="v">${esc(z.net)}</span></div>
+      <div class="kpi"><span class="k">Coût total</span><span class="v">${esc(z.cout || '–')}</span></div>` : `<div class="kpi"><span class="k">Prix au m²</span><span class="v">${esc(z.prixM2)}</span></div>`}
+      <div class="kpi"><span class="k">Évolution</span><span class="v">${esc(z.hausse)}</span></div>
+      ${isNet() ? '' : `<div class="kpi"><span class="k">Rendement brut</span><span class="v">${esc(z.rendement)}</span></div>`}
+    </div>
+    ${z.signal ? `<div class="signal-box"><b>Signal à venir :</b> ${esc(z.signal)}</div>` : ''}
+    <div style="display:grid;gap:8px">
+      <h3>Annonces${state.budget !== '400' ? ' dans le budget' : ''}</h3>
+      <div class="annonces">${ann}</div>
+    </div>
+    ${z.plus ? `<div class="note-plus">${esc(z.plus)}</div>` : ''}
+    <div class="cols">
+      <div><h3>Règles</h3><ul>${z.regles.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>
+      <div><h3>Risques</h3><ul>${z.risques.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div>
+    </div>
+    ${z.source ? `<div class="src muted">Source marché : <a href="${esc(z.source.url)}" target="_blank" rel="noopener noreferrer">${esc(z.source.label)}</a></div>` : ''}`;
+}
+
+function renderRank() {
+  const list = zones().filter(visible);
+  $('count').textContent = `${list.length} zone${list.length > 1 ? 's' : ''} sur ${zones().length}`;
+  $('rank').innerHTML = list.length ? list.map(z => `
+    <button class="card" data-id="${z.id}" aria-current="${state.sel === z.id}">
+      <div class="card-top"><span class="r">#${z.rang}</span><span class="n">${esc(z.nom)}</span><span class="s">${fmtNote(z.note)}</span></div>
+      <div class="meta"><span>${z.types.map(t => `<i class="dot ${t}"></i>`).join(' ')} ${esc(z.pays)}</span>${isNet() ? `<span>Net <b style="color:${/%/.test(z.net) ? 'var(--good)' : 'var(--muted)'}">${esc(/%/.test(z.net) ? z.net : 'à recalculer')}</b></span>` : `<span>Rendement <b>${esc(z.rendement)}</b></span>`}${z.statut === 'anticiper' ? '<span style="color:var(--anticiper);font-weight:600">À anticiper</span>' : ''}</div>
+      <div class="ex">${esc(z.exemple || z.resume)}</div>
+    </button>`).join('') : `<div class="empty">Aucune zone ne correspond à ces filtres.</div>`;
+  $('rank').querySelectorAll('.card').forEach(b => b.addEventListener('click', () => { select(b.dataset.id); document.querySelector('.stage').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); }));
+}
+
+function renderStatic() {
+  const b = state.budget;
+  $('eyebrow').textContent = {
+    net: 'Cycle 1 · 8 octobre 2026 · prospecteur chef + 3 agents de terrain + manager mémoire',
+    '150': 'Rapport du 8 octobre 2026 · rendements bruts · 3 agents de zone + 2 agents annonces + 1 prospecteur',
+    '400': 'Premier rapport · 8 octobre 2026 · 3 agents de zone',
+  }[b];
+  $('lede').textContent = {
+    net: "Budget de 150 000 € tout compris (bien à 140 k€ max). Les rendements sont recalculés en net prudent : frais d'achat, gestion, charges, taxe foncière, impôt et occupation modérée. Les meilleurs biens rapportent 4 à 6 % net.",
+    '150': "Ancien classement à 150 k€, en rendement brut (avant frais et impôts). Remplacé par le cycle 1 en net.",
+    '400': "Premier rapport : budget de 150 000 à 400 000 €, location saisonnière et plus-value, rendements bruts.",
+  }[b];
+  $('rankNote').textContent = isNet()
+    ? "Calcul Italie : prix + 14 % de frais, −22 % de gestion, ~2 050 € de charges et IMU, 21 % d'impôt, ~160 nuits par an en ville."
+    : 'Note /10 : rendement 30 %, dynamique des prix 30 %, règles de location 25 %, risque pays 15 %.';
+  $('minorTitle').textContent = isNet() ? 'Zones écartées au cycle 1' : 'Juste en dehors du top 10';
+  $('fMinorLbl').textContent = $('legMinor').textContent = isNet() ? 'Zones écartées' : 'Zones hors top 10';
+  $('recoPanel').hidden = b === '400';
+  $('enchPanel').hidden = !isNet();
+  $('recoNote').textContent = isNet() ? 'Avec 150 k€, on achète un seul bien. Les centres-villes touristiques loués toute l\'année gagnent.' : 'Avec 150 k€, on achète un seul bien.';
+  const byId = Object.fromEntries([...D.budget150, ...D.cycle1].map(z => [z.id, z]));
+  $('reco').innerHTML = (isNet() ? D.recommandation1 : D.recommandation150).map(r => `
+    <div class="reco-item">
+      <span class="eyebrow">${esc(r.titre)}</span>
+      <div style="display:flex;flex-wrap:wrap;gap:4px 10px">
+        <button class="lnk" data-id="${r.zone}">${esc(byId[r.zone].nom)}</button>
+        ${r.zone2 ? `<span class="muted">ou</span><button class="lnk" data-id="${r.zone2}">${esc(byId[r.zone2].nom)}</button>` : ''}
+      </div>
+      <p>${esc(r.texte)}</p>
+    </div>`).join('');
+  $('reco').querySelectorAll('.lnk').forEach(b => b.addEventListener('click', () => { select(b.dataset.id); document.querySelector('.stage').scrollIntoView({ block: 'start' }); }));
+  $('minorTbl').innerHTML = minors().map(z => `<tr><td><b>${esc(z.nom)}</b><br><span class="muted">${esc(z.pays)}</span></td><td class="nt">${z.note != null ? fmtNote(z.note) : '–'}</td><td>${esc(z.pourquoi)}${z.url ? ` · <a href="${esc(z.url)}" target="_blank" rel="noopener noreferrer">annonce</a>` : ''}</td></tr>`).join('');
+}
+
+function renderOnce() {
+  const e = D.encheres;
+  $('enchDate').textContent = `Vente le ${e.date} · offres avant le ${e.limite}`;
+  $('enchTbl').innerHTML = e.lots.map(l => `<tr><td><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer"><b>${esc(l.lot)}</b></a></td><td>${esc(l.surface)}</td><td class="nt">${esc(l.min)}</td><td>${esc(l.base)}</td><td class="nt" style="color:var(--good)">${esc(l.net)}</td></tr>`).join('');
+  $('enchCheck').innerHTML = e.verifier.map(v => `<li>${esc(v)}</li>`).join('');
+  $('enchInfo').innerHTML = `<h3>Qui contacter</h3><span>${esc(e.contact)}, puis vérifier sur ${esc(e.site)}.</span><div class="note-plus">${esc(e.note)}</div>`;
+  $('dates').innerHTML = [...D.dates1, ...D.dates].map(d => `<li><span class="q">${esc(d.quand)}</span><span>${esc(d.quoi)} <span class="muted">· ${esc(d.zone)}</span></span></li>`).join('');
+  $('avoid').innerHTML = D.aEviter.map(a => `<li><span><b>${esc(a.nom)}</b> : ${esc(a.raison)}</span></li>`).join('');
+  let done = [];
+  try { done = JSON.parse(localStorage.getItem('radar-check') || '[]'); } catch (e) {}
+  $('check').innerHTML = D.checklist.map((c, i) => `<li><label for="ck${i}"><input type="checkbox" id="ck${i}" ${done.includes(i) ? 'checked' : ''}><span>${esc(c)}</span></label></li>`).join('');
+  $('check').addEventListener('change', () => {
+    const v = [...$('check').querySelectorAll('input')].map((x, i) => x.checked ? i : -1).filter(i => i >= 0);
+    try { localStorage.setItem('radar-check', JSON.stringify(v)); } catch (e) {}
+  });
+}
+
+function select(id) { state.sel = id; renderMap(); renderFiche(); renderRank(); }
+
+function render() {
+  if (!zones().some(z => z.id === state.sel)) state.sel = zones()[0].id;
+  $('bnet').setAttribute('aria-pressed', state.budget === 'net');
+  $('b150').setAttribute('aria-pressed', state.budget === '150');
+  $('b400').setAttribute('aria-pressed', state.budget === '400');
+  document.querySelectorAll('[data-f]').forEach(b => b.setAttribute('aria-pressed', b.dataset.f === state.filtre));
+  $('fAnt').setAttribute('aria-pressed', state.anticiper);
+  $('fMinor').setAttribute('aria-pressed', state.minor);
+  renderStatic(); renderMap(); renderFiche(); renderRank();
+}
+
+$('bnet').onclick = () => { state.budget = 'net'; save(); render(); };
+$('b150').onclick = () => { state.budget = '150'; save(); render(); };
+$('b400').onclick = () => { state.budget = '400'; save(); render(); };
+document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { state.filtre = b.dataset.f; render(); });
+$('fAnt').onclick = () => { state.anticiper = !state.anticiper; render(); };
+$('fMinor').onclick = () => { state.minor = !state.minor; render(); };
+renderOnce(); render();
+</script>
