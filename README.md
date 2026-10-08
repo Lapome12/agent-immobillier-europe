@@ -8,4 +8,4 @@
 
 Budget actuel du client : **150 000 € maximum**, aucune zone imposée.
 
-Dernier rapport : [top 10 pour 150 k€ (08/10/2026)](rapports/2026-10-08-top10-budget-150k.md).
+Dernier rapport : [cycle 1, classement en rendement net (08/10/2026)](rapports/2026-10-08-cycle-1.md).
